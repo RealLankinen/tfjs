@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import * as React from 'react';
-import * as tf from '@tensorflow/tfjs-core';
+import * as React from "react";
+import * as tf from "@tensorflow/tfjs-core";
 import {
   StyleSheet,
   PixelRatio,
   LayoutChangeEvent,
-  Platform
-} from 'react-native';
-import { Camera } from 'expo-camera';
-import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
-import { fromTexture, renderToGLView, detectGLCapabilities } from './camera';
+  Platform,
+} from "react-native";
+import { Camera } from "expo-camera";
+import { GLView, ExpoWebGLRenderingContext } from "expo-gl";
+import { fromTexture, renderToGLView, detectGLCapabilities } from "./camera";
 
 interface WrappedComponentProps {
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -44,7 +44,7 @@ interface Props {
     images: IterableIterator<tf.Tensor3D>,
     updateCameraPreview: () => void,
     gl: ExpoWebGLRenderingContext,
-    cameraTexture: WebGLTexture,
+    cameraTexture: WebGLTexture
   ) => void;
 }
 
@@ -168,10 +168,12 @@ const DEFAULT_RESIZE_DEPTH = 3;
 /** @doc {heading: 'Media', subheading: 'Camera'} */
 export function cameraWithTensors<T extends WrappedComponentProps>(
   // tslint:disable-next-line: variable-name
-  CameraComponent: React.ComponentType<T>,
+  CameraComponent: React.ComponentType<T>
 ) {
-  return class CameraWithTensorStream
-    extends React.Component<T & Props, State> {
+  return class CameraWithTensorStream extends React.Component<
+    T & Props,
+    State
+  > {
     camera: Camera;
     glView: GLView;
     glContext: ExpoWebGLRenderingContext;
@@ -189,7 +191,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
 
     componentWillUnmount() {
       cancelAnimationFrame(this.rafID);
-      if(this.glContext) {
+      if (this.glContext) {
         GLView.destroyContextAsync(this.glContext);
       }
       this.camera = null;
@@ -217,7 +219,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         //@ts-ignore
         return this.glView.createCameraTextureAsync(this.camera);
       } else {
-        throw new Error('Expo GL context or camera not available');
+        throw new Error("Expo GL context or camera not available");
       }
     }
 
@@ -306,10 +308,10 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
         );
-        const isFrontCamera = 
+        const isFrontCamera =
           this.camera.props.type === Camera.Constants.Type.front;
-        const flipHorizontal = 
-          Platform.OS === 'ios' && isFrontCamera ? false : true;
+        const flipHorizontal =
+          Platform.OS === "ios" && isFrontCamera ? false : true;
 
         renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal);
       };
@@ -349,44 +351,34 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       }
 
       // Set up an on layout handler
-      const onlayout = this.props.onLayout ? (e: LayoutChangeEvent) => {
-        this.props.onLayout(e);
-        this.onCameraLayout(e);
-      } : this.onCameraLayout;
+      const onlayout = this.props.onLayout
+        ? (e: LayoutChangeEvent) => {
+            this.props.onLayout(e);
+            this.onCameraLayout(e);
+          }
+        : this.onCameraLayout;
 
       cameraProps.onLayout = onlayout;
 
       const cameraComp = (
         //@ts-ignore see https://github.com/microsoft/TypeScript/issues/30650
         <CameraComponent
-          key='camera-with-tensor-camera-view'
-          {...(cameraProps)}
+          key="camera-with-tensor-camera-view"
+          {...cameraProps}
           ref={(ref: Camera) => (this.camera = ref)}
-        />
+        >
+          {this.props.children}
+        </CameraComponent>
       );
 
       // Create the glView if the camera has mounted.
       let glViewComponent = null;
       if (cameraLayout != null) {
-        const styles = StyleSheet.create({
-          glView: {
-            position: 'absolute',
-            left: cameraLayout.x,
-            top: cameraLayout.y,
-            width: cameraLayout.width,
-            height: cameraLayout.height,
-            zIndex: this.props.style.zIndex ?
-              parseInt(this.props.style.zIndex, 10) + 10 : 10,
-          }
-
-        });
-
         glViewComponent = (
           <GLView
-            key='camera-with-tensor-gl-view'
-            style={styles.glView}
+            key="camera-with-tensor-gl-view"
             onContextCreate={this.onGLContextCreate}
-            ref={ref => (this.glView = ref)}
+            ref={(ref) => (this.glView = ref)}
           />
         );
       }
